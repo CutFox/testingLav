@@ -15,7 +15,7 @@ const lavaApi = new LavaPayment(
   "d1daa6c1065b9b21e0d4f221905306ca3e3c0c8b",
   "fireshield.network"
 );
-const bot = new TelegramBot(config.TELEGRAM.TOKEN, { polling: false });
+const bot = new TelegramBot(config.TELEGRAM.TOKEN, { polling: true });
 
 // Команда /start
 bot.onText(/\/start/, (msg) => {
@@ -53,38 +53,37 @@ app.post('/lava-webhook', async (req, res) => {
 
   try {
   console.log('req', req.body)
-    // Проверяем подпись
-    if (!verifyWebhook(req.body)) {
-      return res.status(403).send('Invalid signature');
-    }
+  //   // Проверяем подпись
+  //   if (!verifyWebhook(req.body)) {
+  //     return res.status(403).send('Invalid signature');
+  //   }
 
-    const { orderId, status, customFields } = req.body;
+  //   const { orderId, status, customFields } = req.body;
     
-    if (status === 'success') {
-      console.log("success")
-      // await addSubscriber(customFields.telegramId);
+  //   if (status === 'success') {
+  //     await addSubscriber(customFields.telegramId);
       
-      // // Добавляем пользователя в канал
-      // await bot.addChatMember(
-      //   process.env.TELEGRAM_CHANNEL_ID, 
-      //   customFields.telegramId
-      // );
+  //     // Добавляем пользователя в канал
+  //     await bot.addChatMember(
+  //       process.env.TELEGRAM_CHANNEL_ID, 
+  //       customFields.telegramId
+  //     );
       
-      // Отправляем уведомление пользователю
-      await bot.sendMessage(
-        customFields.telegramId,
-        '✅ Подписка успешно оформлена! Добро пожаловать в канал!'
-      );
-    }
+  //     // Отправляем уведомление пользователю
+  //     await bot.sendMessage(
+  //       customFields.telegramId,
+  //       '✅ Подписка успешно оформлена! Добро пожаловать в канал!'
+  //     );
+  //   }
 
-    res.status(200).json({ success: true });
-  } catch (error) {
-    console.error('Webhook error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+  //   res.status(200).json({ success: true });
+  // } catch (error) {
+  //   console.error('Webhook error:', error);
+  //   res.status(500).json({ error: 'Internal server error' });
+  // }
 });
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🔄 Webhook server listening on port ${PORT}`);
 });
