@@ -54,13 +54,13 @@ app.post('/lava-webhook', async (req, res) => {
   console.log('req', req.body)
   try {
 
-    const { orderId, status, customFields } = req.body;
+    const { orderId, status, custom_fields } = req.body;
     
     if (status === 'success') {
-      console.log('customFields', customFields)
-      await addSubscriber(customFields);
+      console.log('customFields', custom_fields)
+      await addSubscriber(custom_fields);
       console.log('success');
-      console.log(customFields);
+      console.log(custom_fields);
       // Добавляем пользователя в канал
       // await bot.addChatMember(
       //   process.env.TELEGRAM_CHANNEL_ID, 
@@ -69,7 +69,7 @@ app.post('/lava-webhook', async (req, res) => {
       
       // Отправляем уведомление пользователю
       await bot.sendMessage(
-        customFields,
+        custom_fields,
         '✅ Подписка успешно оформлена! Добро пожаловать в канал!'
       );
     }
