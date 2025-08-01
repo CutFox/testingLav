@@ -50,8 +50,8 @@ app.get("/", (req, res) => {
 });
 
 app.post('/lava-webhook', async (req, res) => {
-  console.log('req', req)
-   console.log('res', res)
+  console.log('req', req.body)
+   console.log('res', res.body)
   // try {
   //   // Проверяем подпись
   //   if (!verifyWebhook(req.body)) {
@@ -83,7 +83,7 @@ app.post('/lava-webhook', async (req, res) => {
   // }
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 80;
 app.listen(PORT, () => {
   console.log(`🔄 Webhook server listening on port ${PORT}`);
 });
