@@ -37,6 +37,7 @@ bot.on('callback_query', async (query) => {
       sum: 10,
       orderId: `${query.message.chat.id}_${Date.now()}`,
       expire: 5,
+      customFields:query.message.chat.id,
     });
     const balance = await lavaApi.getBalance();
     const status = await lavaApi.getInvoiceStatus(dataInvoice.data.id);

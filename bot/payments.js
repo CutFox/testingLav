@@ -11,10 +11,10 @@ export class LavaPayment {
   constructor(shopId, secretKey) {
     this.shopId = shopId;
     this.secretKey = secretKey;
-    this.customFields= { 
-          telegramId: "userId",
-          product: "premium_subscription"
-        },
+    // this.customFields= { 
+    //       "telegramId": "userId",
+    //       "product": "premium_subscription"
+    //     },
     this.api = axios.create({
       baseURL: LavaPayment.BASE_URL,
       headers: {
