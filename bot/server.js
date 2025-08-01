@@ -57,8 +57,9 @@ app.post('/lava-webhook', async (req, res) => {
     const { orderId, status, customFields } = req.body;
     
     if (status === 'success') {
-      // await addSubscriber(customFields.telegramId);
+      await addSubscriber(customFields);
       console.log('success');
+      console.log(customFields);
       // Добавляем пользователя в канал
       // await bot.addChatMember(
       //   process.env.TELEGRAM_CHANNEL_ID, 
