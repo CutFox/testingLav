@@ -51,7 +51,6 @@ app.get("/", (req, res) => {
 
 app.post('/lava-webhook', async (req, res) => {
   console.log('req', req.body)
-   console.log('res', res.body)
   // try {
   //   // Проверяем подпись
   //   if (!verifyWebhook(req.body)) {
