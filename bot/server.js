@@ -20,6 +20,7 @@ const bot = new TelegramBot(config.TELEGRAM.TOKEN, { polling: true });
 // Команда /start
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
+  
   bot.sendMessage(chatId, '💰 Купите подписку, чтобы получить доступ к каналу!', {
     reply_markup: {
       inline_keyboard: [
@@ -46,8 +47,11 @@ bot.on('callback_query', async (query) => {
     bot.sendMessage(query.message.chat.id, `🔗 Ссылка для оплаты: ${dataInvoice.data.url}`);
   }
 });
-app.get("/", (req, res) => {
-  res.send("3Hello World3");
+app.get("/", async(req, res) => {
+  await bot.addChatMember(
+        process.env.TELEGRAM_CHANNEL_ID, 
+        420178775
+      );
 });
 
 app.post('/lava-webhook', async (req, res) => {
@@ -58,17 +62,15 @@ app.post('/lava-webhook', async (req, res) => {
     
     if (status === 'success') {
       await addSubscriber(custom_fields);
-      // Добавляем пользователя в канал
-      // await bot.addChatMember(
-      //   process.env.TELEGRAM_CHANNEL_ID, 
-      //   customFields.telegramId
-      // );
-      
-      // Отправляем уведомление пользователю
       await bot.sendMessage(
         custom_fields,
         '✅ Подписка успешно оформлена! Добро пожаловать в канал!'
       );
+
+      await bot.sendMessage(
+        custom_fields,
+        'https://t.me/+E1uFRpFVvyA3N2Ey',
+      {parse_mode: "HTML"})
     }
 
     res.status(200);

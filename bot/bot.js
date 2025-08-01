@@ -13,14 +13,19 @@ const bot = new TelegramBot(config.TELEGRAM.TOKEN, { polling: true });
 // Команда /start
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
-  bot.sendMessage(chatId, '💰 Купите подписку, чтобы получить доступ к каналу!', {
+  bot.sendMessage(chatId,'https://t.me/+E1uFRpFVvyA3N2Ey')
+  bot.sendMessage(chatId, '💰 1111Купите подписку, чтобы получить доступ к каналу!', {
     reply_markup: {
       inline_keyboard: [
-        [{ text: '💳 Купить подписку (300 ₽)', callback_data: 'buy_subscription' }]
+        [{ text: '💳 Купить подписку (301 ₽)', callback_data: 'buy_subscription' }]
       ]
     }
   });
+   
 });
+
+
+
 
 // Обработка кнопки "Купить подписку"
 bot.on('callback_query', async (query) => {
