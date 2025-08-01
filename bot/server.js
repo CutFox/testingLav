@@ -57,6 +57,7 @@ app.post('/lava-webhook', async (req, res) => {
     const { orderId, status, customFields } = req.body;
     
     if (status === 'success') {
+      console.log('customFields', customFields)
       await addSubscriber(customFields);
       console.log('success');
       console.log(customFields);
@@ -68,7 +69,7 @@ app.post('/lava-webhook', async (req, res) => {
       
       // Отправляем уведомление пользователю
       await bot.sendMessage(
-        customFields.telegramId,
+        customFields,
         '✅ Подписка успешно оформлена! Добро пожаловать в канал!'
       );
     }
