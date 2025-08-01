@@ -15,7 +15,7 @@ const lavaApi = new LavaPayment(
   "d1daa6c1065b9b21e0d4f221905306ca3e3c0c8b",
   "fireshield.network"
 );
-const bot = new TelegramBot(config.TELEGRAM.TOKEN, { polling: true });
+const bot = new TelegramBot(config.TELEGRAM.TOKEN, { polling: false });
 
 // Команда /start
 bot.onText(/\/start/, (msg) => {
