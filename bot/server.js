@@ -57,10 +57,7 @@ app.post('/lava-webhook', async (req, res) => {
     const { orderId, status, custom_fields } = req.body;
     
     if (status === 'success') {
-      console.log('customFields', custom_fields)
       await addSubscriber(custom_fields);
-      console.log('success');
-      console.log(custom_fields);
       // Добавляем пользователя в канал
       // await bot.addChatMember(
       //   process.env.TELEGRAM_CHANNEL_ID, 
@@ -74,7 +71,7 @@ app.post('/lava-webhook', async (req, res) => {
       );
     }
 
-    res.status(200).json({ success: true });
+    res.status(200);
   } catch (error) {
     console.error('Webhook error:', error);
     res.status(500).json({ error: 'Internal server error' });
