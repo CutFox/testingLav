@@ -73,7 +73,7 @@ app.post('/lava-webhook', async (req, res) => {
       {parse_mode: "HTML"})
     }
 
-    res.send(200);
+    res.status(200).send('OK')
   } catch (error) {
     console.error('Webhook error:', error);
     res.status(500).json({ error: 'Internal server error' });
