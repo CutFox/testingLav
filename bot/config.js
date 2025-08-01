@@ -4,7 +4,7 @@ export default {
   TELEGRAM: {
     TOKEN: process.env.TELEGRAM_BOT_TOKEN,
     CHANNEL_ID: process.env.TELEGRAM_CHANNEL_ID,
-    ADMIN_IDS: process.env.ADMIN_IDS.split(',').map(Number),
+    ADMIN_IDS: process.env.ADMIN_IDS
   },
   LAVA: {
     SHOP_ID: process.env.LAVA_SHOP_ID,
