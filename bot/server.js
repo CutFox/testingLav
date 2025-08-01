@@ -50,9 +50,9 @@ app.get("/", (req, res) => {
 });
 
 app.post('/lava-webhook', async (req, res) => {
-
-  try {
   console.log('req', req.body)
+  // try {
+  
   //   // Проверяем подпись
   //   if (!verifyWebhook(req.body)) {
   //     return res.status(403).send('Invalid signature');
