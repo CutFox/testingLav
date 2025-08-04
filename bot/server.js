@@ -78,6 +78,7 @@ bot.onText(/\/start/, (msg) => {
 
 
 bot.on('callback_query', async (query) => {
+  console.log('query.data', query.data)
 try {
   if (query.data === 'buy_subscriptionOne') {
     const dataInvoice = await lavaApi.createInvoice({
@@ -132,7 +133,7 @@ try {
       expire: 5,
       customFields:query.message.chat.id,
     });
-    console.log('status', status)
+    // console.log('status', status)
     bot.sendMessage(query.message.chat.id, `🔗 Ссылка для оплаты: ${dataInvoice.data.url}`);
   }
 } catch (error) {
