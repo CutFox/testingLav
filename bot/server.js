@@ -46,6 +46,77 @@ async function removeUserFromChannel(chatId, userId, ban = false) {
 }
 
 
+async function processChannelJoinRequest(request, approve = true) {
+    try {
+        if (!request.chat || !request.from) {
+            throw new Error('Invalid join request object');
+        }
+
+        const chatId = request.chat.id;
+        const userId = request.from.id;
+
+        if (approve) {
+            // Одобряем заявку
+            await bot.approveChatJoinRequest(chatId, userId);
+            console.log(`Заявка пользователя ${userId} одобрена для канала ${chatId}`);
+            
+            // Можно отправить приветственное сообщение
+            try {
+                await bot.sendMessage(userId, `Добро пожаловать в ${request.chat.title}!`);
+            } catch (e) {
+                console.log('Не удалось отправить приветствие:', e.message);
+            }
+        } else {
+            // Отклоняем заявку
+            await bot.declineChatJoinRequest(chatId, userId);
+            console.log(`Заявка пользователя ${userId} отклонена для канала ${chatId}`);
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Ошибка обработки заявки:', error.message);
+        
+        if (error.response) {
+            switch(error.response.error_code) {
+                case 400:
+                    console.log('Заявка уже обработана или не существует');
+                    break;
+                case 403:
+                    console.log('Нет прав для обработки заявок');
+                    break;
+            }
+        }
+        
+        return false;
+    }
+}
+
+// Обработчик входящих запросов на вступление
+bot.on('chat_join_request', async (update) => {
+    console.log('Получена новая заявка:', update);
+
+   
+
+    const statusUser = await database.approveUser(update.user_chat_id)
+if(statusUser){
+  await processChannelJoinRequest(update, true);
+}
+return
+
+
+});
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Команда /start
 bot.onText(/\/qwe/, async(msg) => {
@@ -143,18 +214,15 @@ try {
   
 });
 app.get("/", async(req, res) => {
-  // await addSubscriber("6990892092");
-  // console.log('test', test)
-  await database.addSubscriberOneMonth("6990892092")
+
+  // await database.addSubscriberOneMonth("6990892092")
   res.send("add");
 });
 
 app.post('/lava-webhook', async (req, res) => {
   console.log('req', req.body)
   try {
-
     const { orderId, status, custom_fields, amount } = req.body;
-    
     if (status === 'success') {
       switch (amount) {
         case process.env.OneMonth:
@@ -190,17 +258,17 @@ app.post('/lava-webhook', async (req, res) => {
         '✅ Подписка успешно оформлена! Добро пожаловать в канал!'
       );
 
-      await bot.sendMessage(
+      // await bot.sendMessage(
+      //   custom_fields,
+      //   'https://t.me/+E1uFRpFVvyA3N2Ey',
+      // {parse_mode: "HTML"})
+      //https://t.me/+mp9AoH-yx7Y1NGJi
+     
+    
+     await bot.sendMessage(
         custom_fields,
-        'https://t.me/+E1uFRpFVvyA3N2Ey',
+        'https://t.me/+bu6xGLGfqCNlNTVi',
       {parse_mode: "HTML"})
-      
-    
-    
-    //  await bot.sendMessage(
-    //     custom_fields,
-    //     'https://t.me/+mW8jUiliDLg5NDhi',
-    //   {parse_mode: "HTML"})
     }
 
     res.status(200).send('OK')

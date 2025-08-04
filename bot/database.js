@@ -64,3 +64,6 @@ export const addSubscriberTwelveMonth = async (userId) => {
   { upsert: true}
 );
 };
+export const approveUser=async(userId)=>{
+  return await mongoose.model('Subscriber').exists({ userId });
+}
