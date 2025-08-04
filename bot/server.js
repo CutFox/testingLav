@@ -17,7 +17,50 @@ const lavaApi = new LavaPayment(
 );
 const bot = new TelegramBot(config.TELEGRAM.TOKEN, { polling: true });
 
+
+async function removeUserFromChannel(chatId, userId, ban = false) {
+    try {
+        // Сначала кикаем пользователя
+        await bot.banChatMember(chatId, userId, {
+            revoke_messages: true // Удалить все сообщения пользователя
+        });
+
+        // Если не нужно банить - сразу разбаниваем
+        if (!ban) {
+            await bot.unbanChatMember(chatId, userId, { 
+                only_if_banned: true 
+            });
+        }
+
+        console.log(`Пользователь ${userId} ${ban ? 'забанен' : 'удалён'} из канала ${chatId}`);
+        return true;
+    } catch (error) {
+        console.error('Ошибка удаления:', error.message);
+        
+        // Проверяем, есть ли пользователь в чате
+        if (error.response && error.response.error_code === 400) {
+            console.log('Возможно, пользователь уже не в канале');
+        }
+        
+        return false;
+    }
+}
+
+
+
 // Команда /start
+bot.onText(/\/qwe/, async(msg) => {
+  const chatId = msg.chat.id;
+  // var channelId = -1002288400815
+  // var userId = 420178775
+
+  removeUserFromChannel('-1002288400815', 420178775); 
+
+  // await banUserFromChannel(channelId,userId)
+  bot.sendMessage(chatId, 'Пользователь удален');
+});
+
+
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
   
@@ -29,6 +72,9 @@ bot.onText(/\/start/, (msg) => {
     }
   });
 });
+
+
+
 
 // Обработка кнопки "Купить подписку"
 bot.on('callback_query', async (query) => {
