@@ -1,10 +1,9 @@
 import express from 'express';
-import { addSubscriber } from './database.js';
-
+import * as database from './database.js';
+import 'dotenv/config'
 import TelegramBot from 'node-telegram-bot-api';
 import config from './config.js';
 import { LavaPayment } from './payments.js';
-
 
 
 
@@ -67,7 +66,9 @@ bot.onText(/\/start/, (msg) => {
   bot.sendMessage(chatId, '💰 Купите подписку, чтобы получить доступ к каналу!', {
     reply_markup: {
       inline_keyboard: [
-        [{ text: '💳 Купить подписку (300 ₽)', callback_data: 'buy_subscription' }]
+        [{ text: '1 МЕСЯЦ', callback_data: 'buy_subscriptionOne' },{ text: '2 МЕСЯЦА 🔥 -5%', callback_data: 'buy_subscriptionTwo' }],
+        [{ text: '3 МЕСЯЦА 🔥 -8%', callback_data: 'buy_subscriptionThree' },{ text: '6 МЕСЯЦЕВ 🔥 -15%', callback_data: 'buy_subscriptionSix' }],
+        [{ text: '12 МЕСЯЦЕВ 🔥 -20%', callback_data: 'buy_subscriptionTwelve' }]
       ]
     }
   });
@@ -76,37 +77,85 @@ bot.onText(/\/start/, (msg) => {
 
 
 
-// Обработка кнопки "Купить подписку"
 bot.on('callback_query', async (query) => {
-  if (query.data === 'buy_subscription') {
+try {
+  if (query.data === 'buy_subscriptionOne') {
     const dataInvoice = await lavaApi.createInvoice({
-      shopId: "840d3dff-2252-446b-8802-ce0b2521f76f",
-      sum: 10,
+      shopId: process.env.LAVA_SHOP_ID,
+      sum: process.env.OneMonth,
       orderId: `${query.message.chat.id}_${Date.now()}`,
       expire: 5,
       customFields:query.message.chat.id,
     });
-    const balance = await lavaApi.getBalance();
+    // const balance = await lavaApi.getBalance();
     const status = await lavaApi.getInvoiceStatus(dataInvoice.data.id);
-    console.log('balance', balance)
+    // console.log('balance', balance)
     console.log('status', status)
     bot.sendMessage(query.message.chat.id, `🔗 Ссылка для оплаты: ${dataInvoice.data.url}`);
   }
+  if (query.data === 'buy_subscriptionTwo') {
+    const dataInvoice = await lavaApi.createInvoice({
+      shopId: process.env.LAVA_SHOP_ID,
+      sum: process.env.TwoMonth,
+      orderId: `${query.message.chat.id}_${Date.now()}`,
+      expire: 5,
+      customFields:query.message.chat.id,
+    });
+    const status = await lavaApi.getInvoiceStatus(dataInvoice.data.id);
+    bot.sendMessage(query.message.chat.id, `🔗 Ссылка для оплаты: ${dataInvoice.data.url}`);
+  }
+  if (query.data === 'buy_subscriptionThree') {
+    const dataInvoice = await lavaApi.createInvoice({
+      shopId: process.env.LAVA_SHOP_ID,
+      sum: process.env.ThreeMonth,
+      orderId: `${query.message.chat.id}_${Date.now()}`,
+      expire: 5,
+      customFields:query.message.chat.id,
+    });
+    bot.sendMessage(query.message.chat.id, `🔗 Ссылка для оплаты: ${dataInvoice.data.url}`);
+  }
+  if (query.data === 'buy_subscriptionSix') {
+    const dataInvoice = await lavaApi.createInvoice({
+      shopId: process.env.LAVA_SHOP_ID,
+      sum: process.env.SixMonth,
+      orderId: `${query.message.chat.id}_${Date.now()}`,
+      expire: 5,
+      customFields:query.message.chat.id,
+    });
+    bot.sendMessage(query.message.chat.id, `🔗 Ссылка для оплаты: ${dataInvoice.data.url}`);
+  }
+  if (query.data === 'buy_subscriptionTwelve') {
+    const dataInvoice = await lavaApi.createInvoice({
+      shopId: process.env.LAVA_SHOP_ID,
+      sum: process.env.TwelveMonth,
+      orderId: `${query.message.chat.id}_${Date.now()}`,
+      expire: 5,
+      customFields:query.message.chat.id,
+    });
+    console.log('status', status)
+    bot.sendMessage(query.message.chat.id, `🔗 Ссылка для оплаты: ${dataInvoice.data.url}`);
+  }
+} catch (error) {
+  console.log(error);
+}
+
+  
 });
 app.get("/", async(req, res) => {
-  await bot.addChatMember(
-        process.env.TELEGRAM_CHANNEL_ID, 
-        420178775
-      );
+  // await addSubscriber("6990892092");
+  // console.log('test', test)
+  await database.addSubscriberOneMonth("6990892092")
+  res.send("add");
 });
 
 app.post('/lava-webhook', async (req, res) => {
   console.log('req', req.body)
   try {
 
-    const { orderId, status, custom_fields } = req.body;
+    const { orderId, status, custom_fields,amount } = req.body;
     
     if (status === 'success') {
+      console.log('first', amount)
       await addSubscriber(custom_fields);
       await bot.sendMessage(
         custom_fields,
@@ -116,6 +165,13 @@ app.post('/lava-webhook', async (req, res) => {
       await bot.sendMessage(
         custom_fields,
         'https://t.me/+E1uFRpFVvyA3N2Ey',
+      {parse_mode: "HTML"})
+      
+    
+    
+     await bot.sendMessage(
+        custom_fields,
+        'https://t.me/+mW8jUiliDLg5NDhi',
       {parse_mode: "HTML"})
     }
 

@@ -6,7 +6,8 @@ import bot from './bot.js';
 const app = express();
 app.use(express.json());
 
-app.get("/", (req, res) => {
+app.get("/", async(req, res) => {
+  // await addSubscriber(6990892092);
   res.send("3Hello World3");
 });
 
