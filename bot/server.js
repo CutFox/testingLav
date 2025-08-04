@@ -152,11 +152,38 @@ app.post('/lava-webhook', async (req, res) => {
   console.log('req', req.body)
   try {
 
-    const { orderId, status, custom_fields,amount } = req.body;
+    const { orderId, status, custom_fields, amount } = req.body;
     
     if (status === 'success') {
+      switch (amount) {
+        case process.env.OneMonth:
+          await addSubscriberOneMonth(custom_fields);
+          console.log('1');
+          break;
+        case process.env.TwoMonth:
+          await addSubscriberTwoMonth(custom_fields);
+          console.log('2');
+          break;
+        case process.env.ThreeMonth:
+          await addSubscriberThreeMonth(custom_fields);
+          console.log('3');
+          break;
+        case process.env.SixMonth:
+          await addSubscriberSixMonth(custom_fields);
+          console.log('6');
+          break;
+        case process.env.TwelveMonth:
+          await addSubscriberTwelveMonth(custom_fields);
+          console.log('12');
+          break;
+        default:
+           await bot.sendMessage(
+        custom_fields,
+        'В процессе оплаты произошла ошибка обратитесь к администратору @',
+      {parse_mode: "HTML"})
+          break;
+      }
       console.log('first', amount)
-      await addSubscriber(custom_fields);
       await bot.sendMessage(
         custom_fields,
         '✅ Подписка успешно оформлена! Добро пожаловать в канал!'
@@ -169,10 +196,10 @@ app.post('/lava-webhook', async (req, res) => {
       
     
     
-     await bot.sendMessage(
-        custom_fields,
-        'https://t.me/+mW8jUiliDLg5NDhi',
-      {parse_mode: "HTML"})
+    //  await bot.sendMessage(
+    //     custom_fields,
+    //     'https://t.me/+mW8jUiliDLg5NDhi',
+    //   {parse_mode: "HTML"})
     }
 
     res.status(200).send('OK')

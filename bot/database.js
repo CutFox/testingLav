@@ -40,3 +40,27 @@ export const addSubscriberThreeMonth = async (userId) => {
   { upsert: true}
 );
 };
+export const addSubscriberSixMonth = async (userId) => {
+  await mongoose.model('Subscriber').findOneAndUpdate(
+  { userId },
+  { 
+    $set: { 
+      startNotificationMessage: subDays(addMonths(new Date(), 6), 3),
+      subscriptionEnd: addMonths(new Date(), 6) 
+    } 
+  },
+  { upsert: true}
+);
+};
+export const addSubscriberTwelveMonth = async (userId) => {
+  await mongoose.model('Subscriber').findOneAndUpdate(
+  { userId },
+  { 
+    $set: { 
+      startNotificationMessage: subDays(addMonths(new Date(), 12), 3),
+      subscriptionEnd: addMonths(new Date(), 12) 
+    } 
+  },
+  { upsert: true}
+);
+};
