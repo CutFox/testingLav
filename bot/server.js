@@ -157,23 +157,23 @@ app.post('/lava-webhook', async (req, res) => {
     if (status === 'success') {
       switch (amount) {
         case process.env.OneMonth:
-          await addSubscriberOneMonth(custom_fields);
+          await database.addSubscriberOneMonth(custom_fields);
           console.log('1');
           break;
         case process.env.TwoMonth:
-          await addSubscriberTwoMonth(custom_fields);
+          await database.addSubscriberTwoMonth(custom_fields);
           console.log('2');
           break;
         case process.env.ThreeMonth:
-          await addSubscriberThreeMonth(custom_fields);
+          await database.addSubscriberThreeMonth(custom_fields);
           console.log('3');
           break;
         case process.env.SixMonth:
-          await addSubscriberSixMonth(custom_fields);
+          await database.addSubscriberSixMonth(custom_fields);
           console.log('6');
           break;
         case process.env.TwelveMonth:
-          await addSubscriberTwelveMonth(custom_fields);
+          await database.addSubscriberTwelveMonth(custom_fields);
           console.log('12');
           break;
         default:
