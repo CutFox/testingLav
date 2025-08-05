@@ -65,7 +65,7 @@ export const addSubscriberTwelveMonth = async (userId) => {
   );
 };
 export const approveUser = async (userId) => {
-  return await mongoose.model("Subscriber").updateOne({ userId });
+  return await mongoose.model("Subscriber").findOne({ userId });
 };
 
 export const dbfind = async (userId) => {
@@ -76,4 +76,7 @@ export const dbStartNotification = async (userId,value) => {
 };
 export const dbUserActive = async (userId,value) => {
   return await mongoose.model("Subscriber").updateOne({userId}, { $set :{userActive: value} });
+};
+export const dbfindNotificate = async (userId) => {
+  return await mongoose.model("Subscriber").find({userNotifacation:true}, { _id: 0 });
 };

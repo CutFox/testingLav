@@ -15,7 +15,22 @@ const lavaApi = new LavaPayment(
 );
 const bot = new TelegramBot(config.TELEGRAM.TOKEN, { polling: true });
 
-async function removeUserFromChannel(chatId, userId, ban = false) {
+export async function createNotification() {
+   const dbtest = await database.dbfindNotificate();
+    async function processArray(array) {
+      for (const item of array) {
+        const {userId} = item;
+        bot.sendMessage(
+        userId,
+        `Ваша подписка почти закончилась для проления подписки введите команду /resub чтоб не потерять доступ к каналу.`
+      );
+      }
+      
+    }
+ processArray(dbtest)
+}
+
+export async function removeUserFromChannel(chatId, userId, ban = false) {
   try {
     // Сначала кикаем пользователя
     await bot.banChatMember(chatId, userId, {
@@ -111,65 +126,7 @@ bot.on("chat_join_request", async (update) => {
 // Команда /start
 bot.onText(/\/qwe/, async (msg) => {
   const chatId = msg.chat.id;
-
-  function compareWithCurrentDate(date) {
-    const inputDate = new Date(date);
-    const currentDate = new Date();
-
-    inputDate.setHours(0, 0, 0, 0);
-    currentDate.setHours(0, 0, 0, 0);
-
-    if (inputDate < currentDate) {
-      return -1;
-    } else if (inputDate > currentDate) {
-      return 1;
-    } else {
-      return 0;
-    }
-  }
-
-  const dbtest = await database.dbfind();
-
-  async function processArray(array) {
-    for (const item of array) {
-      const {
-        userId,
-        userNotifacation,
-        subscriptionEnd,
-        startNotificationMessage,
-        userActive,
-      } = item;
-      if (userActive) {
-        if (!userNotifacation) {
-          const resulDateNotification = compareWithCurrentDate(
-            startNotificationMessage
-          );
-          if (resulDateNotification <= 0) {
-            console.log(userId);
-            console.log("start notification");
-            await database.dbStartNotification(userId, 1);
-          }
-        } else {
-          const resulDateActive = compareWithCurrentDate(subscriptionEnd);
-          if (resulDateActive <= 0) {
-            console.log(userId);
-            console.log("User disable");
-            await database.dbUserActive(userId, 0);
-            await database.dbStartNotification(userId, 0);
-            await removeUserFromChannel(process.env.TELEGRAM_CHANNEL_ID, userId);
-          }
-        }
-      }
-    }
-  }
-  processArray(dbtest);
-
-  // Пример использования
-
-  // removeUserFromChannel("-1002288400815", 420178775);
-
-  // await banUserFromChannel(channelId,userId)
-  // bot.sendMessage(chatId, "Пользователь удален");
+ 
 });
 
 bot.onText(/\/start/, (msg) => {
@@ -323,13 +280,6 @@ app.post("/lava-webhook", async (req, res) => {
         custom_fields,
         "✅ Подписка успешно оформлена! Добро пожаловать в канал!"
       );
-
-      // await bot.sendMessage(
-      //   custom_fields,
-      //   'https://t.me/+E1uFRpFVvyA3N2Ey',
-      // {parse_mode: "HTML"})
-      //https://t.me/+mp9AoH-yx7Y1NGJi
-
       await bot.sendMessage(custom_fields, "https://t.me/+bu6xGLGfqCNlNTVi", {
         parse_mode: "HTML",
       });
