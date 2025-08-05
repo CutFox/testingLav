@@ -101,7 +101,8 @@ async function processChannelJoinRequest(request, approve = true) {
 bot.on("chat_join_request", async (update) => {
   console.log("Получена новая заявка:", update);
   const statusUser = await database.approveUser(update.user_chat_id);
-  if (statusUser) {
+
+  if (statusUser.userActive) {
     await processChannelJoinRequest(update, true);
   }
   return;

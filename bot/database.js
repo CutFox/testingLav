@@ -65,7 +65,7 @@ export const addSubscriberTwelveMonth = async (userId) => {
   );
 };
 export const approveUser = async (userId) => {
-  return await mongoose.model("Subscriber").exists({ userId });
+  return await mongoose.model("Subscriber").updateOne({ userId });
 };
 
 export const dbfind = async (userId) => {
