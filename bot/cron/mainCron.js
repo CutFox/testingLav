@@ -57,7 +57,7 @@ cron.schedule("37 23 * * *", async () => {
   processArray(dbtest);
 });
 
-cron.schedule("* * * * *", async () => {
+cron.schedule("37 11 * * *", async () => {
   await createNotification()
   });
 
