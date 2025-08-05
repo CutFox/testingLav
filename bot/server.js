@@ -111,15 +111,10 @@ bot.on("chat_join_request", async (update) => {
 bot.onText(/\/qwe/, async (msg) => {
   const chatId = msg.chat.id;
 
-  const dbtest = await database.test(420178775);
-  console.log(dbtest.startNotificationMessage);
-
   function compareWithCurrentDate(date) {
-    // Преобразуем входные данные в объект Date
     const inputDate = new Date(date);
     const currentDate = new Date();
 
-    // Устанавливаем время в 00:00:00 для обеих дат для сравнения только дат (без времени)
     inputDate.setHours(0, 0, 0, 0);
     currentDate.setHours(0, 0, 0, 0);
 
@@ -132,14 +127,48 @@ bot.onText(/\/qwe/, async (msg) => {
     }
   }
 
+  const dbtest = await database.dbfind();
+
+  async function processArray(array) {
+    for (const item of array) {
+      const {
+        userId,
+        userNotifacation,
+        subscriptionEnd,
+        startNotificationMessage,
+        userActive,
+      } = item;
+      if (userActive) {
+        if (!userNotifacation) {
+          const resulDateNotification = compareWithCurrentDate(
+            startNotificationMessage
+          );
+          if (resulDateNotification <= 0) {
+            console.log(userId);
+            console.log("start notification");
+            await database.dbStartNotification(userId, 1);
+          }
+        } else {
+          const resulDateActive = compareWithCurrentDate(subscriptionEnd);
+          if (resulDateActive <= 0) {
+            console.log(userId);
+            console.log("User disable");
+            await database.dbUserActive(userId, 0);
+            await database.dbStartNotification(userId, 0);
+            await removeUserFromChannel(process.env.TELEGRAM_CHANNEL_ID, userId);
+          }
+        }
+      }
+    }
+  }
+  processArray(dbtest);
+
   // Пример использования
-  const result = compareWithCurrentDate(dbtest.startNotificationMessage);
-  console.log(result); //
 
   // removeUserFromChannel("-1002288400815", 420178775);
 
   // await banUserFromChannel(channelId,userId)
-  bot.sendMessage(chatId, "Пользователь удален");
+  // bot.sendMessage(chatId, "Пользователь удален");
 });
 
 bot.onText(/\/start/, (msg) => {

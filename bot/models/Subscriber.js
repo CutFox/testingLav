@@ -4,6 +4,7 @@ const subscriberSchema = new mongoose.Schema(
   {
     userId: { type: Number, required: true, unique: true },
     userActive: { type: Boolean, required: true, default: true },
+    userNotifacation: { type: Boolean, required: true, default: true },
     startNotificationMessage: {
       type: Date,
     },

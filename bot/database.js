@@ -68,6 +68,12 @@ export const approveUser = async (userId) => {
   return await mongoose.model("Subscriber").exists({ userId });
 };
 
-export const test = async (userId) => {
-  return await mongoose.model("Subscriber").findOne({ userId }, { _id: 0 });
+export const dbfind = async (userId) => {
+  return await mongoose.model("Subscriber").find({}, { _id: 0 });
+};
+export const dbStartNotification = async (userId,value) => {
+  return await mongoose.model("Subscriber").updateOne({userId}, { $set :{userNotifacation: value} });
+};
+export const dbUserActive = async (userId,value) => {
+  return await mongoose.model("Subscriber").updateOne({userId}, { $set :{userActive: value} });
 };
