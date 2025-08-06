@@ -1,20 +1,14 @@
 import axios from 'axios';
 import crypto from 'crypto';
 
-export async function test(params) {
-  console.log('test', )
-}
+
 
 export class LavaPayment {
   static BASE_URL = 'https://api.lava.ru';
-  
+
   constructor(shopId, secretKey) {
     this.shopId = shopId;
     this.secretKey = secretKey;
-    // this.customFields= { 
-    //       "telegramId": "userId",
-    //       "product": "premium_subscription"
-    //     },
     this.api = axios.create({
       baseURL: LavaPayment.BASE_URL,
       headers: {
@@ -33,8 +27,8 @@ export class LavaPayment {
   }
 
   async #request(endpoint, data = {}) {
+    const body = { shopId: this.shopId, ...data };
     try {
-      const body = { shopId: this.shopId, ...data };
       const response = await this.api.post(endpoint, body, {
         headers: {
           Signature: this.#createSignature(body)
@@ -50,15 +44,14 @@ export class LavaPayment {
   #normalizeError(error) {
     const lavaError = error.response?.data?.error_type;
     const errorMessages = {
-      'invalid_signature': 'Invalid API signature',
-      'insufficient_funds': 'Insufficient funds',
-      'invoice_not_created': 'Invoice creation failed'
+      invalid_signature: 'Invalid API signature',
+      insufficient_funds: 'Insufficient funds',
+      invoice_not_created: 'Invoice creation failed'
     };
-    
     return new Error(errorMessages[lavaError] || 'Payment processing error');
   }
 
-  // Payment methods
+  // --- Payment methods ---
   createInvoice(data) {
     return this.#request('business/invoice/create', data);
   }
@@ -71,7 +64,7 @@ export class LavaPayment {
     return this.#request('business/invoice/get-available-tariffs');
   }
 
-  // Payoff methods
+  // --- Payoff methods ---
   createPayoff(data) {
     return this.#request('business/payoff/create', data);
   }
@@ -84,7 +77,7 @@ export class LavaPayment {
     return this.#request('business/payoff/get-tariffs');
   }
 
-  // Shop methods
+  // --- Shop methods ---
   getBalance() {
     return this.#request('business/shop/get-balance');
   }

@@ -1,63 +1,35 @@
 import cron from "node-cron";
 import * as database from '../database.js'
-import { removeUserFromChannel,createNotification } from "../server.js";
+import { removeUserFromChannel,createNotification,compareWithCurrentDate } from "../tools.js";
 import "dotenv/config";
 
+cron.schedule("38 10 * * *", async () => {
+  let users = await database.dbFindAll();
+  for (const item of users) {
+    const {
+      userId,
+      userNotification,
+      subscriptionEnd,
+      startNotificationMessage,
+      userActive,
+    } = item;
+    if (!userActive) continue;
 
-cron.schedule("37 23 * * *", async () => {
-   function compareWithCurrentDate(date) {
-    const inputDate = new Date(date);
-    const currentDate = new Date();
-
-    inputDate.setHours(0, 0, 0, 0);
-    currentDate.setHours(0, 0, 0, 0);
-
-    if (inputDate < currentDate) {
-      return -1;
-    } else if (inputDate > currentDate) {
-      return 1;
+    if (!userNotification) {
+      if (compareWithCurrentDate(startNotificationMessage) <= 0) {
+        await database.dbSetNotification(userId, true);
+        console.log(userId, "start notification");
+      }
     } else {
-      return 0;
-    }
-  }
-  
-  const dbtest = await database.dbfind();
-  async function processArray(array) {
-    for (const item of array) {
-      const {
-        userId,
-        userNotifacation,
-        subscriptionEnd,
-        startNotificationMessage,
-        userActive,
-      } = item;
-      if (userActive) {
-        if (!userNotifacation) {
-          const resulDateNotification = compareWithCurrentDate(
-            startNotificationMessage
-          );
-          if (resulDateNotification <= 0) {
-            console.log(userId);
-            console.log("start notification");
-            await database.dbStartNotification(userId, 1);
-          }
-        } else {
-          const resulDateActive = compareWithCurrentDate(subscriptionEnd);
-          if (resulDateActive <= 0) {
-            console.log(userId);
-            console.log("User disable");
-            await database.dbUserActive(userId, 0);
-            await database.dbStartNotification(userId, 0);
-            await removeUserFromChannel(process.env.TELEGRAM_CHANNEL_ID, userId);
-          }
-        }
+      if (compareWithCurrentDate(subscriptionEnd) <= 0) {
+        console.log(userId, "User disable");
+        await database.dbSetUserActive(userId, false);
+        await database.dbSetNotification(userId, false);
+        await removeUserFromChannel(process.env.TELEGRAM_CHANNEL_ID, userId);
       }
     }
   }
-  processArray(dbtest);
 });
-
-cron.schedule("37 11 * * *", async () => {
-  await createNotification()
-  });
-
+cron.schedule("15 11 * * *", async () => {
+  await createNotification();
+});

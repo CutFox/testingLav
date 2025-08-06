@@ -4,7 +4,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon ./bot/server.js"
+    "dev": "nodemon ./bot/main.js"
   },
   "author": "",
   "license": "ISC",

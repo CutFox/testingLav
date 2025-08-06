@@ -1,82 +1,49 @@
+
 import mongoose from "mongoose";
-import config from "./config.js";
+import "dotenv/config";
 import Subscriber from "./models/Subscriber.js";
 import { addMonths, subDays } from "date-fns";
-mongoose.connect(config.MONGO_URI);
 
-export const addSubscriberOneMonth = async (userId) => {
-  await mongoose.model("Subscriber").findOneAndUpdate(
+mongoose.connect(process.env.MONGODB_URI);
+
+
+const updateSubscriber = async (userId, months) => {
+  await Subscriber.findOneAndUpdate(
     { userId },
     {
       $set: {
-        startNotificationMessage: subDays(addMonths(new Date(), 1), 3),
-        subscriptionEnd: addMonths(new Date(), 1),
+        startNotificationMessage: subDays(addMonths(new Date(), months), 3),
+        subscriptionEnd: addMonths(new Date(), months),
+        userActive:true,
+        userNotification:false
       },
     },
     { upsert: true }
   );
 };
-export const addSubscriberTwoMonth = async (userId) => {
-  await mongoose.model("Subscriber").findOneAndUpdate(
-    { userId },
-    {
-      $set: {
-        startNotificationMessage: subDays(addMonths(new Date(), 2), 3),
-        subscriptionEnd: addMonths(new Date(), 2),
-      },
-    },
-    { upsert: true }
-  );
-};
-export const addSubscriberThreeMonth = async (userId) => {
-  await mongoose.model("Subscriber").findOneAndUpdate(
-    { userId },
-    {
-      $set: {
-        startNotificationMessage: subDays(addMonths(new Date(), 3), 3),
-        subscriptionEnd: addMonths(new Date(), 3),
-      },
-    },
-    { upsert: true }
-  );
-};
-export const addSubscriberSixMonth = async (userId) => {
-  await mongoose.model("Subscriber").findOneAndUpdate(
-    { userId },
-    {
-      $set: {
-        startNotificationMessage: subDays(addMonths(new Date(), 6), 3),
-        subscriptionEnd: addMonths(new Date(), 6),
-      },
-    },
-    { upsert: true }
-  );
-};
-export const addSubscriberTwelveMonth = async (userId) => {
-  await mongoose.model("Subscriber").findOneAndUpdate(
-    { userId },
-    {
-      $set: {
-        startNotificationMessage: subDays(addMonths(new Date(), 12), 3),
-        subscriptionEnd: addMonths(new Date(), 12),
-      },
-    },
-    { upsert: true }
-  );
-};
+
+export const addSubscriberOneMonth = async (userId) => updateSubscriber(userId, 1);
+export const addSubscriberTwoMonth = async (userId) => updateSubscriber(userId, 2);
+export const addSubscriberThreeMonth = async (userId) => updateSubscriber(userId, 3);
+export const addSubscriberSixMonth = async (userId) => updateSubscriber(userId, 6);
+export const addSubscriberTwelveMonth = async (userId) => updateSubscriber(userId, 12);
+
 export const approveUser = async (userId) => {
-  return await mongoose.model("Subscriber").findOne({ userId });
+  return await Subscriber.findOne({ userId });
 };
 
-export const dbfind = async (userId) => {
-  return await mongoose.model("Subscriber").find({}, { _id: 0 });
+export const dbFindAll = async () => {
+  return await Subscriber.find({}, { _id: 0 });
 };
-export const dbStartNotification = async (userId,value) => {
-  return await mongoose.model("Subscriber").updateOne({userId}, { $set :{userNotifacation: value} });
+
+export const dbSetNotification = async (userId, value) => {
+  return await Subscriber.updateOne({ userId }, { $set: { userNotification: value } });
 };
-export const dbUserActive = async (userId,value) => {
-  return await mongoose.model("Subscriber").updateOne({userId}, { $set :{userActive: value} });
+
+export const dbSetUserActive = async (userId, value) => {
+  return await Subscriber.updateOne({ userId }, { $set: { userActive: value } });
 };
-export const dbfindNotificate = async (userId) => {
-  return await mongoose.model("Subscriber").find({userNotifacation:true}, { _id: 0 });
+
+export const dbFindNotificationUsers = async () => {
+  return await Subscriber.find({ userNotification: true }, { _id: 0 });
 };
