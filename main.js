@@ -38,7 +38,7 @@ bot.onText(/\/admin/, async (msg) => {
 bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
   const userIndb = await database.approveUser(chatId);
-  if (userIndb) {
+  if (!userIndb.userActive) {
     console.log("user in base");
     bot.sendMessage(
       chatId,
