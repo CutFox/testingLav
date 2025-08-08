@@ -38,38 +38,48 @@ bot.onText(/\/admin/, async (msg) => {
 bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
   const userIndb = await database.approveUser(chatId);
-  if (!userIndb.userActive) {
-    console.log("user in base");
-    bot.sendMessage(
-      chatId,
-      "Ваша подписка временно ограничена, для продления доступа к ресурсу преобретите подписку заново.",
-      {
-        reply_markup: {
-          inline_keyboard: [
-            [
-              { text: "1 МЕСЯЦ", callback_data: "buy_subscriptionOne" },
-              { text: "2 МЕСЯЦА 🔥 -5%", callback_data: "buy_subscriptionTwo" },
+  if (userIndb !== null) {
+    if (userIndb.userActive) {
+      const dataSubscriptionEnd = userIndb.subscriptionEnd;
+      bot.sendMessage(
+        chatId,
+        `Ваша подписка активна до ${dataSubscriptionEnd}. Введите команду /start для проверки статуса подписки`
+      );
+    } else {
+      bot.sendMessage(
+        chatId,
+        "Ваша подписка временно ограничена, для продления доступа к ресурсу преобретите подписку заново.",
+        {
+          reply_markup: {
+            inline_keyboard: [
+              [
+                { text: "1 МЕСЯЦ", callback_data: "buy_subscriptionOne" },
+                {
+                  text: "2 МЕСЯЦА 🔥 -5%",
+                  callback_data: "buy_subscriptionTwo",
+                },
+              ],
+              [
+                {
+                  text: "3 МЕСЯЦА 🔥 -8%",
+                  callback_data: "buy_subscriptionThree",
+                },
+                {
+                  text: "6 МЕСЯЦЕВ 🔥 -15%",
+                  callback_data: "buy_subscriptionSix",
+                },
+              ],
+              [
+                {
+                  text: "12 МЕСЯЦЕВ 🔥 -20%",
+                  callback_data: "buy_subscriptionTwelve",
+                },
+              ],
             ],
-            [
-              {
-                text: "3 МЕСЯЦА 🔥 -8%",
-                callback_data: "buy_subscriptionThree",
-              },
-              {
-                text: "6 МЕСЯЦЕВ 🔥 -15%",
-                callback_data: "buy_subscriptionSix",
-              },
-            ],
-            [
-              {
-                text: "12 МЕСЯЦЕВ 🔥 -20%",
-                callback_data: "buy_subscriptionTwelve",
-              },
-            ],
-          ],
-        },
-      }
-    );
+          },
+        }
+      );
+    }
   } else {
     bot.sendMessage(
       chatId,
