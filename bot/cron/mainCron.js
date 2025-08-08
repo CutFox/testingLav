@@ -3,7 +3,7 @@ import * as database from '../database.js'
 import { removeUserFromChannel,createNotification,compareWithCurrentDate } from "../tools.js";
 import "dotenv/config";
 
-cron.schedule("38 9 * * *", async () => {
+cron.schedule("50 9 * * *", async () => {
   let users = await database.dbFindAll();
   for (const item of users) {
     const {
@@ -30,6 +30,6 @@ cron.schedule("38 9 * * *", async () => {
     }
   }
 });
-cron.schedule("45 9 * * *", async () => {
+cron.schedule("55 9 * * *", async () => {
   await createNotification();
 });
