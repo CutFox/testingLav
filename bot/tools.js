@@ -1,5 +1,5 @@
-import * as database from "./database.js"
-import  {bot}  from "./bot.js";
+import * as database from "./database.js";
+import { bot } from "./bot.js";
 
 export async function createNotification() {
   const users = await database.dbFindNotificationUsers();
@@ -53,16 +53,21 @@ export async function processChannelJoinRequest(request, approve = true) {
     if (approve) {
       // Одобряем заявку
       await bot.approveChatJoinRequest(chatId, userId);
+
+      // await bot.deleteMessage(userId, messageId);
       console.log(
         `Заявка пользователя ${userId} одобрена для канала ${chatId}`
       );
 
       // Можно отправить приветственное сообщение
       try {
-        await bot.sendMessage(
-          userId,
-          `Добро пожаловать в ${request.chat.title}!`
-        );
+        await bot
+          .sendMessage(userId, `Добро пожаловать в ${request.chat.title}!`)
+          .then((response) => {
+            const messageId = response.message_id;
+
+            //  bot.deleteMessage(userId, messageId-1);
+          });
       } catch (e) {
         console.log("Не удалось отправить приветствие:", e.message);
       }
