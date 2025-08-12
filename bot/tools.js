@@ -11,6 +11,15 @@ export async function createNotification() {
   }
 }
 
+export async function createNotificationAdmin(textNotification) {
+  const users = await database.dbFindNotificationUsersAdmin();
+  for (const { userId } of users) {
+    await bot.sendMessage(
+      userId,textNotification
+    );
+  }
+}
+
 export async function removeUserFromChannel(chatId, userId, ban = false) {
   try {
     // Сначала кикаем пользователя
@@ -104,6 +113,10 @@ export function compareWithCurrentDate(date) {
   inputDate.setHours(0, 0, 0, 0);
   currentDate.setHours(0, 0, 0, 0);
   return inputDate < currentDate ? -1 : inputDate > currentDate ? 1 : 0;
+}
+
+export async function createReportAdmin(params) {
+  
 }
 
 export const subscriptionMap = {

@@ -47,3 +47,7 @@ export const dbSetUserActive = async (userId, value) => {
 export const dbFindNotificationUsers = async () => {
   return await Subscriber.find({ userNotification: true }, { _id: 0 });
 };
+
+export const dbFindNotificationUsersAdmin = async () => {
+  return await Subscriber.find({ userActive: true }, { _id: 0 });
+};
