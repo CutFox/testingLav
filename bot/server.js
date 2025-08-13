@@ -23,8 +23,11 @@ app.post("/lava-webhook", async (req, res) => {
       // Поиск подходящего тарифа по сумме и добавление подписки
       for (const [key, { sum }] of Object.entries(subscriptionMap)) {
         if (String(sum) === String(amount)) {
-          const addFunc = database[`addSubscriber${key.replace('buy_subscription', '')}Month`];
-          if (typeof addFunc === 'function') {
+          const addFunc =
+            database[
+              `addSubscriber${key.replace("buy_subscription", "")}Month`
+            ];
+          if (typeof addFunc === "function") {
             await addFunc(custom_fields);
             added = true;
             break;
@@ -40,15 +43,13 @@ app.post("/lava-webhook", async (req, res) => {
         );
       } else {
         // Успешная оплата: уведомление и приглашение в канал
-        await bot.sendMessage(
-          custom_fields,
-          "✅ Подписка успешно оформлена! Добро пожаловать в канал!"
-        ).then(response => {
-          const messageId = response.message_id;
-          // Удаление предыдущего сообщения (например, с кнопкой оплаты)
-          console.log('ID отправленного сообщения:', messageId-2);
-          bot.deleteMessage(custom_fields, messageId-1);
-        });
+        await bot
+          .sendMessage(custom_fields, "✅ Спасибо за подписку 💪")
+          .then((response) => {
+            const messageId = response.message_id;
+            // Удаление предыдущего сообщения (например, с кнопкой оплаты)
+            bot.deleteMessage(custom_fields, messageId - 1);
+          });
         await bot.sendMessage(custom_fields, "https://t.me/+bu6xGLGfqCNlNTVi", {
           parse_mode: "HTML",
         });

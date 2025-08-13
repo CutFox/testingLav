@@ -1,7 +1,11 @@
 // Импорт зависимостей и сервисов
 import cron from "node-cron";
-import * as database from '../database.js';
-import { removeUserFromChannel, createNotification, compareWithCurrentDate } from "../tools.js";
+import * as database from "../database.js";
+import {
+  removeUserFromChannel,
+  createNotification,
+  compareWithCurrentDate,
+} from "../tools.js";
 import "dotenv/config";
 
 // Ежедневная задача: проверка статусов подписок и уведомлений
@@ -30,6 +34,13 @@ cron.schedule("50 9 * * *", async () => {
         await database.dbSetUserActive(userId, false);
         await database.dbSetNotification(userId, false);
         await removeUserFromChannel(process.env.TELEGRAM_CHANNEL_ID, userId);
+        await bot.sendMessage(
+          userId,
+          `Привет! Срок действия платной подписки истёк.` +
+            `Спасибо тебе огромное за то, что был со мной и поддерживал меня в течение этого времени! Я очень ценю, что ты выбрал мой платный Telegram-канал.` +
+            `Буду очень рад видеть тебя снова в числе моих подписчиков!\nУдачи! 💪`,
+          { parse_mode: "HTML" }
+        );
       }
     }
   }
