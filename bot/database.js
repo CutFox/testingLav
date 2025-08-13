@@ -51,3 +51,10 @@ export const dbFindNotificationUsers = async () => {
 export const dbFindNotificationUsersAdmin = async () => {
   return await Subscriber.find({ userActive: true }, { _id: 0 });
 };
+
+export const dbFindIntervalDate = async (startDate,endDate) => {
+  return await Subscriber.find({ createdAt: {
+    $gte: startDate,
+    $lte: endDate
+  }}, { _id: 0 });
+};
