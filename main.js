@@ -2,7 +2,12 @@
 import * as database from "./bot/database.js";
 import "dotenv/config";
 import { LavaPayment } from "./bot/payments.js";
-import { processChannelJoinRequest, subscriptionMap, createNotificationAdmin, createReportAdmin } from "./bot/tools.js";
+import {
+  processChannelJoinRequest,
+  subscriptionMap,
+  createNotificationAdmin,
+  createReportAdmin,
+} from "./bot/tools.js";
 import "./bot/cron/mainCron.js";
 import "./bot/server.js";
 import { bot } from "./bot/bot.js";
@@ -27,9 +32,16 @@ const subscriptionButtons = [
     { text: "3 МЕСЯЦА 🔥 -8%", callback_data: "buy_subscriptionThree" },
     { text: "6 МЕСЯЦЕВ 🔥 -15%", callback_data: "buy_subscriptionSix" },
   ],
+  [{ text: "12 МЕСЯЦЕВ 🔥 -20%", callback_data: "buy_subscriptionTwelve" }],
+];
+
+const payMetods = [
   [
-    { text: "12 МЕСЯЦЕВ 🔥 -20%", callback_data: "buy_subscriptionTwelve" },
+    { text: "🇷🇺 Российские карты", callback_data: "buy_ru" },
+    { text: "🇰🇿🇺🇿🇹🇯 Доллары (СНГ)", callback_data: "buy_sng" },
   ],
+  [{ text: "🇺🇸🇪🇺🇨🇦🇮🇱 Зарубежные карты", callback_data: "buy_world" }],
+  [{ text: "💰 Криптовалюта (USDT - TRC20)", callback_data: "buy_trc" }],
 ];
 
 // Команда /privacy — политика конфиденциальности
@@ -39,7 +51,12 @@ bot.onText(/\/privacy/, async (msg) => {
     parse_mode: "HTML",
     reply_markup: {
       inline_keyboard: [
-        [{ text: "Начать", url: "https://t.me/TravelShopAnanasik_bot?start=1" }],
+        [
+          {
+            text: "Начать",
+            url: "https://t.me/TravelShopAnanasik_bot?start=1",
+          },
+        ],
       ],
     },
   });
@@ -54,29 +71,41 @@ bot.onText(/\/test/, async (msg) => {
 // Команда /support — поддержка
 bot.onText(/\/support/, async (msg) => {
   const chatId = msg.chat.id;
-  bot.sendMessage(chatId, `По вопросам технической поддержки обращайтесь @webmikefox`, {
-    parse_mode: "HTML",
-    reply_markup: {
-      inline_keyboard: [
-        [{ text: "Начать", url: "https://t.me/TravelShopAnanasik_bot?start=1" }],
-      ],
-    },
-  });
+  bot.sendMessage(
+    chatId,
+    `По вопросам технической поддержки обращайтесь @webmikefox`,
+    {
+      parse_mode: "HTML",
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: "Начать",
+              url: "https://t.me/TravelShopAnanasik_bot?start=1",
+            },
+          ],
+        ],
+      },
+    }
+  );
 });
 
 // Команда /admin — панель администратора
 bot.onText(/\/admin/, async (msg) => {
   const chatId = msg.chat.id;
-  const adminIds = String(process.env.ADMIN_IDS).split(',').map(id => id.trim());
+  const adminIds = String(process.env.ADMIN_IDS)
+    .split(",")
+    .map((id) => id.trim());
   if (adminIds.includes(String(chatId))) {
     bot.sendMessage(chatId, "Добро пожаловать в панель администратора", {
       reply_markup: {
         inline_keyboard: [
+          [{ text: "Отчет по пользователям", callback_data: "Adm_report" }],
           [
-            { text: "Отчет по пользователям", callback_data: "Adm_report" },
-          ],
-          [
-            { text: "Уведомление для пользователей", callback_data: "Adm_notification" },
+            {
+              text: "Уведомление для пользователей",
+              callback_data: "Adm_notification",
+            },
           ],
         ],
       },
@@ -98,10 +127,15 @@ bot.onText(/\/start/, async (msg) => {
       chatId,
       userIndb
         ? "Ваша подписка временно ограничена, для продления доступа к ресурсу преобретите подписку заново."
-        : "💰 Купите подписку, чтобы получить доступ к каналу!",
+        : "Выберите метод оплаты в автоматическом режиме работает только поплнение с карты РФ",
+      // {
+      //   reply_markup: {
+      //     inline_keyboard: subscriptionButtons,
+      //   },
+      // }
       {
         reply_markup: {
-          inline_keyboard: subscriptionButtons,
+          inline_keyboard: payMetods,
         },
       }
     );
@@ -118,30 +152,78 @@ bot.on("chat_join_request", async (update) => {
 });
 
 // Обработка callback_query (кнопки)
-bot.removeAllListeners('callback_query');
+bot.removeAllListeners("callback_query");
 bot.on("callback_query", async (query) => {
   try {
     const sub = subscriptionMap[query.data];
     if (!sub) {
-      // Кнопки админ-панели
-      if (query.data === "Adm_report") {
-        const report = await createReportAdmin();
-        await bot.sendMessage(
-          query.message.chat.id,
-          `<blockquote><b>Отчет</b></blockquote>\n\n🔹Пользователей в БД: <b>${report.allUserInbd}</b>\n🔹Активные пользователи в БД: <b>${report.activeUsersInbd}</b>\n🔹Неактивные пользователи в БД: <b>${report.allUserInbd - report.activeUsersInbd}</b>\n` +
-            `🔹Ост. менее 3 д. подписки: <b>${report.notificateUser}</b>\n\n🔹Кол-во участников в канале: <b>${report.userInСhannel}</b>\n<blockquote>За исключением Админа и бота</blockquote>\n\n` +
-            `🔹Прирост за месяц: <b>${report.userThisMounth}</b>\n🔹Прирост за 7 дней: <b>${report.userThisWeek}</b>\n\n` +
-            `🔹Баланс кошелька: <b>${report.balance}₽</b>\n🔹Баланс в заморозке 10д.: <b>${report.freeze_balance}₽</b>`,
-          { parse_mode: "HTML" }
-        );
-      } else if (query.data === "Adm_notification") {
-        await bot.sendMessage(
-          query.message.chat.id,
-          `Ответьте на данное сообщение текстом уведомления`,
-          { reply_markup: { force_reply: true } }
-        );
-      } else {
-        console.log(query.data);
+      switch (query.data) {
+        case "buy_ru":
+          await bot.sendMessage(
+            query.message.chat.id,
+            "💰 Купите подписку, чтобы получить доступ к каналу!",
+            {
+              reply_markup: {
+                inline_keyboard: subscriptionButtons,
+              },
+            }
+          );
+          break;
+          case "buy_sng":
+          await bot.sendMessage(
+            query.message.chat.id,
+            "💰 Купите подписку, чтобы получить доступ к каналу! подтверждение производится в ручном режиме и может занять некоторое время месяц 10р комментарий к платежу ваш ID",
+            {
+              reply_markup: {
+                inline_keyboard: [[{ text: "Я оплатил", callback_data: "card_paid" }]],
+              },
+            }
+          );
+          break;
+
+          case "card_paid":
+            await bot.deleteMessage(query.message.chat.id, query.message.message_id);
+            await bot.sendMessage(
+            process.env.ADMIN_IDS,
+            `Заявка на предоставление доступа к каналу от пользователя ID:${query.message.chat.id}`,{
+              reply_markup: {
+                inline_keyboard: [[{ text: "Подтвердить", callback_data: `Adm_subEnable_${query.message.chat.id}` },{ text: "Отказать", callback_data: `Adm_subDisable_${query.message.chat.id}` }]],
+              },
+            }
+          );
+            await bot.sendMessage(
+            query.message.chat.id,
+            "Заявка отправлена на модерацию, после подтверждения платежа вам будет отправлена ссылка на вступление в группу",
+            
+          );
+            break;
+        case "Adm_report":
+          const report = await createReportAdmin();
+          await bot.sendMessage(
+            query.message.chat.id,
+            `<blockquote><b>Отчет</b></blockquote>\n\n🔹Пользователей в БД: <b>${
+              report.allUserInbd
+            }</b>\n🔹Активные пользователи в БД: <b>${
+              report.activeUsersInbd
+            }</b>\n🔹Неактивные пользователи в БД: <b>${
+              report.allUserInbd - report.activeUsersInbd
+            }</b>\n` +
+              `🔹Ост. менее 3 д. подписки: <b>${report.notificateUser}</b>\n\n🔹Кол-во участников в канале: <b>${report.userInСhannel}</b>\n<blockquote>За исключением Админа и бота</blockquote>\n\n` +
+              `🔹Прирост за месяц: <b>${report.userThisMounth}</b>\n🔹Прирост за 7 дней: <b>${report.userThisWeek}</b>\n\n` +
+              `🔹Баланс кошелька: <b>${report.balance}₽</b>\n🔹Баланс в заморозке 10д.: <b>${report.freeze_balance}₽</b>`,
+            { parse_mode: "HTML" }
+          );
+          break;
+        case "Adm_notification":
+          await bot.sendMessage(
+            query.message.chat.id,
+            `Ответьте на данное сообщение текстом уведомления`,
+            { reply_markup: { force_reply: true } }
+          );
+          break;
+        default:
+          console.log(query.data);
+          break;
       }
       return;
     }
@@ -153,8 +235,8 @@ bot.on("callback_query", async (query) => {
       expire: 5,
       customFields: query.message.chat.id,
     });
-    bot.deleteMessage(query.message.chat.id, query.message.message_id);
-    bot.sendMessage(
+    await bot.deleteMessage(query.message.chat.id, query.message.message_id);
+    await bot.sendMessage(
       query.message.chat.id,
       `🔗 Ссылка для оплаты: ${dataInvoice.data.url}`
     );
@@ -164,13 +246,16 @@ bot.on("callback_query", async (query) => {
 });
 
 // Обработка force_reply для массовых уведомлений от администратора
-bot.removeAllListeners('message');
-bot.on('message', async (msg) => {
+bot.removeAllListeners("message");
+bot.on("message", async (msg) => {
   if (!msg.reply_to_message) return;
-  const adminIds = String(process.env.ADMIN_IDS).split(',').map(id => id.trim());
+  const adminIds = String(process.env.ADMIN_IDS)
+    .split(",")
+    .map((id) => id.trim());
   if (
     adminIds.includes(String(msg.chat.id)) &&
-    msg.reply_to_message.text === 'Ответьте на данное сообщение текстом уведомления'
+    msg.reply_to_message.text ===
+      "Ответьте на данное сообщение текстом уведомления"
   ) {
     const textNotification = msg.text;
     await createNotificationAdmin(textNotification);
