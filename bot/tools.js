@@ -9,6 +9,7 @@ import {
   endOfWeek,
 } from "date-fns";
 import { LavaPayment } from "./payments.js";
+import axios from "axios";
 
 // Инициализация API LavaPayment для работы с платежами
 const lavaApi = new LavaPayment(
@@ -16,6 +17,41 @@ const lavaApi = new LavaPayment(
   process.env.LAVA_SECRET_KEY,
   process.env.LAVA_SHOP_NAME
 );
+
+export async function addUser(amount , custom_fields) {
+  try {
+    const response = await axios.post(`http://localhost:3000/lava-webhook`, {
+      amount: amount,
+      status: "success",
+      custom_fields: custom_fields,
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      timeout: 10000 // 10 секунд таймаут
+    });
+
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      // Сервер ответил с ошибкой
+      console.error('Server responded with error:', {
+        status: error.response.status,
+        data: error.response.data
+      });
+      throw new Error(`Server error: ${error.response.status}`);
+    } else if (error.request) {
+      // Запрос был сделан, но ответ не получен
+      console.error('No response received:', error.request);
+      throw new Error('No response from server');
+    } else {
+      // Ошибка при настройке запроса
+      console.error('Request setup error:', error.message);
+      throw new Error('Failed to setup request');
+    }
+  }
+}
+
 
 // Универсальная функция для получения интервала дат (месяц, неделя и т.д.)
 function getInterval(getStart, getEnd, date = new Date()) {

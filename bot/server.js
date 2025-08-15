@@ -10,7 +10,7 @@ const app = express();
 app.use(express.json());
 
 // Тестовый GET-эндпоинт (можно использовать для проверки работоспособности сервера)
-app.get("/", async (req, res) => {
+app.post("/", async (req, res) => {
   res.send("add");
 });
 
@@ -38,7 +38,7 @@ app.post("/lava-webhook", async (req, res) => {
         // Если не найден тариф — уведомление об ошибке
         await bot.sendMessage(
           custom_fields,
-          "В процессе оплаты произошла ошибка, обратитесь к администратору @",
+          `В процессе оплаты произошла ошибка, обратитесь к администратору ${process.env.SUPPORT}`,
           { parse_mode: "HTML" }
         );
       } else {
@@ -50,7 +50,7 @@ app.post("/lava-webhook", async (req, res) => {
             // Удаление предыдущего сообщения (например, с кнопкой оплаты)
             bot.deleteMessage(custom_fields, messageId - 1);
           });
-        await bot.sendMessage(custom_fields, "https://t.me/+bu6xGLGfqCNlNTVi", {
+        await bot.sendMessage(custom_fields, process.env.TELEGRAM_CHANNEL_LINK, {
           parse_mode: "HTML",
         });
       }
