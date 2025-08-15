@@ -1,12 +1,22 @@
+
+// Импорт зависимостей и моделей
 import mongoose from "mongoose";
 import "dotenv/config";
 import Subscriber from "./models/Subscriber.js";
 import PreSubscriber from "./models/PreSubscriber.js";
 import { addMonths, subDays } from "date-fns";
 
+// Подключение к MongoDB
 mongoose.connect(process.env.MONGODB_URI);
 
-const updateSubscriber = async (userId, months) => {
+
+/**
+ * Добавляет или обновляет подписчика на заданное количество месяцев
+ * @param {string|number} userId - ID пользователя
+ * @param {number} months - срок подписки в месяцах
+ * @returns {Promise<void>}
+ */
+export const addSubscriber = async (userId, months) => {
   await Subscriber.findOneAndUpdate(
     { userId },
     {
@@ -21,21 +31,37 @@ const updateSubscriber = async (userId, months) => {
   );
 };
 
-const updatePreSubscriber = async (userId, msgId) => {
+/**
+ * Быстрые алиасы для добавления подписки на разные сроки (для совместимости)
+ */
+export const addSubscriberOneMonth = (userId) => addSubscriber(userId, 1);
+export const addSubscriberTwoMonth = (userId) => addSubscriber(userId, 2);
+export const addSubscriberThreeMonth = (userId) => addSubscriber(userId, 3);
+export const addSubscriberSixMonth = (userId) => addSubscriber(userId, 6);
+export const addSubscriberTwelveMonth = (userId) => addSubscriber(userId, 12);
+
+/**
+ * Добавляет или обновляет "предподписчика" с сообщением
+ * @param {string|number} userId - ID пользователя
+ * @param {string|number} msgId - ID сообщения
+ * @returns {Promise<void>}
+ */
+export const addPreSubscriber = async (userId, msgId) => {
   await PreSubscriber.findOneAndUpdate(
     { userId },
-    {
-      $set: {
-        msgId: msgId,
-      },
-    },
+    { $set: { msgId } },
     { upsert: true }
   );
 };
 
-const deletePreSubscriber = async (userId) => {
+/**
+ * Удаляет предподписчика по userId
+ * @param {string|number} userId
+ * @returns {Promise<void>}
+ */
+export const delPreSubscriber = async (userId) => {
   try {
-    const result = await PreSubscriber.deleteOne({ userId: userId });
+    const result = await PreSubscriber.deleteOne({ userId });
     if (result.deletedCount === 0) {
       console.log("Пользователь не найден");
     } else {
@@ -46,62 +72,64 @@ const deletePreSubscriber = async (userId) => {
   }
 };
 
-export const addSubscriberOneMonth = async (userId) =>
-  updateSubscriber(userId, 1);
-export const addSubscriberTwoMonth = async (userId) =>
-  updateSubscriber(userId, 2);
-export const addSubscriberThreeMonth = async (userId) =>
-  updateSubscriber(userId, 3);
-export const addSubscriberSixMonth = async (userId) =>
-  updateSubscriber(userId, 6);
-export const addSubscriberTwelveMonth = async (userId) =>
-  updateSubscriber(userId, 12);
 
-export const addPreSubscriber = async (userId,msgId) => updatePreSubscriber(userId,msgId);
-export const delPreSubscriber = async (userId) => deletePreSubscriber(userId);
+/**
+ * Проверяет, есть ли пользователь в базе подписчиков
+ * @param {string|number} userId
+ * @returns {Promise<Object|null>}
+ */
+export const approveUser = async (userId) => Subscriber.findOne({ userId });
 
-export const approveUser = async (userId) => {
-  return await Subscriber.findOne({ userId });
-};
+/**
+ * Проверяет, есть ли предподписчик в базе
+ * @param {string|number} userId
+ * @returns {Promise<Object|null>}
+ */
+export const approvePreUser = async (userId) => PreSubscriber.findOne({ userId });
 
-export const approvePreUser = async (userId) => {
-  return await PreSubscriber.findOne({ userId });
-};
+/**
+ * Возвращает всех подписчиков (без _id)
+ * @returns {Promise<Array>}
+ */
+export const dbFindAll = async () => Subscriber.find({}, { _id: 0 });
 
-export const dbFindAll = async () => {
-  return await Subscriber.find({}, { _id: 0 });
-};
+/**
+ * Устанавливает флаг уведомления для пользователя
+ * @param {string|number} userId
+ * @param {boolean} value
+ * @returns {Promise<Object>}
+ */
+export const dbSetNotification = async (userId, value) =>
+  Subscriber.updateOne({ userId }, { $set: { userNotification: value } });
 
-export const dbSetNotification = async (userId, value) => {
-  return await Subscriber.updateOne(
-    { userId },
-    { $set: { userNotification: value } }
-  );
-};
+/**
+ * Устанавливает флаг активности пользователя
+ * @param {string|number} userId
+ * @param {boolean} value
+ * @returns {Promise<Object>}
+ */
+export const dbSetUserActive = async (userId, value) =>
+  Subscriber.updateOne({ userId }, { $set: { userActive: value } });
 
-export const dbSetUserActive = async (userId, value) => {
-  return await Subscriber.updateOne(
-    { userId },
-    { $set: { userActive: value } }
-  );
-};
+/**
+ * Находит пользователей, которым нужно отправить уведомление
+ * @returns {Promise<Array>}
+ */
+export const dbFindNotificationUsers = async () =>
+  Subscriber.find({ userNotification: true }, { _id: 0 });
 
-export const dbFindNotificationUsers = async () => {
-  return await Subscriber.find({ userNotification: true }, { _id: 0 });
-};
+/**
+ * Находит всех активных пользователей (для админ-уведомлений)
+ * @returns {Promise<Array>}
+ */
+export const dbFindNotificationUsersAdmin = async () =>
+  Subscriber.find({ userActive: true }, { _id: 0 });
 
-export const dbFindNotificationUsersAdmin = async () => {
-  return await Subscriber.find({ userActive: true }, { _id: 0 });
-};
-
-export const dbFindIntervalDate = async (startDate, endDate) => {
-  return await Subscriber.find(
-    {
-      createdAt: {
-        $gte: startDate,
-        $lte: endDate,
-      },
-    },
-    { _id: 0 }
-  );
-};
+/**
+ * Находит пользователей, зарегистрированных в заданном интервале дат
+ * @param {string|Date} startDate
+ * @param {string|Date} endDate
+ * @returns {Promise<Array>}
+ */
+export const dbFindIntervalDate = async (startDate, endDate) =>
+  Subscriber.find({ createdAt: { $gte: startDate, $lte: endDate } }, { _id: 0 });

@@ -1,3 +1,4 @@
+
 // Импорт зависимостей и сервисов
 import express from "express";
 import "dotenv/config";
@@ -5,36 +6,38 @@ import * as database from "./database.js";
 import { bot } from "./bot.js";
 import { subscriptionMap } from "./tools.js";
 
+
 // Инициализация Express-приложения
 const app = express();
 app.use(express.json());
 
-// Тестовый GET-эндпоинт (можно использовать для проверки работоспособности сервера)
-app.post("/", async (req, res) => {
+// Тестовый POST-эндпоинт (можно использовать для проверки работоспособности сервера)
+app.post("/", (req, res) => {
   res.send("add");
 });
+
+
+// Вспомогательная функция для поиска функции добавления подписки по сумме
+function getAddSubscriberFunc(amount) {
+  for (const [key, { sum }] of Object.entries(subscriptionMap)) {
+    if (String(sum) === String(amount)) {
+      // Приводим к виду addSubscriberOneMonth, addSubscriberTwoMonth и т.д.
+      const funcName = `addSubscriber${key.replace("buy_subscription", "")}Month`;
+      if (typeof database[funcName] === "function") {
+        return database[funcName];
+      }
+    }
+  }
+  return null;
+}
 
 // Вебхук для обработки уведомлений от платежной системы Lava
 app.post("/lava-webhook", async (req, res) => {
   try {
     const { status, custom_fields, amount } = req.body;
     if (status === "success") {
-      let added = false;
-      // Поиск подходящего тарифа по сумме и добавление подписки
-      for (const [key, { sum }] of Object.entries(subscriptionMap)) {
-        if (String(sum) === String(amount)) {
-          const addFunc =
-            database[
-              `addSubscriber${key.replace("buy_subscription", "")}Month`
-            ];
-          if (typeof addFunc === "function") {
-            await addFunc(custom_fields);
-            added = true;
-            break;
-          }
-        }
-      }
-      if (!added) {
+      const addFunc = getAddSubscriberFunc(amount);
+      if (!addFunc) {
         // Если не найден тариф — уведомление об ошибке
         await bot.sendMessage(
           custom_fields,
@@ -43,6 +46,7 @@ app.post("/lava-webhook", async (req, res) => {
         );
       } else {
         // Успешная оплата: уведомление и приглашение в канал
+        await addFunc(custom_fields);
         await bot
           .sendMessage(custom_fields, "✅ Спасибо за подписку 💪")
           .then((response) => {
@@ -61,6 +65,7 @@ app.post("/lava-webhook", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
 
 // Запуск сервера на указанном порту
 const PORT = process.env.PORT || 3000;

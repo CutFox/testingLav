@@ -1,15 +1,11 @@
-// Импортируем модули для работы с БД, ботом, датами и платежами
+
+// Импорт зависимостей и сервисов
 import * as database from "./database.js";
 import { bot } from "./bot.js";
-import {
-  startOfMonth,
-  endOfMonth,
-  format,
-  startOfWeek,
-  endOfWeek,
-} from "date-fns";
+import { startOfMonth, endOfMonth, format, startOfWeek, endOfWeek } from "date-fns";
 import { LavaPayment } from "./payments.js";
 import axios from "axios";
+
 
 // Инициализация API LavaPayment для работы с платежами
 const lavaApi = new LavaPayment(
@@ -18,39 +14,45 @@ const lavaApi = new LavaPayment(
   process.env.LAVA_SHOP_NAME
 );
 
-export async function addUser(amount , custom_fields) {
-  try {
-    const response = await axios.post(`http://localhost:3000/lava-webhook`, {
-      amount: amount,
-      status: "success",
-      custom_fields: custom_fields,
-    }, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      timeout: 10000 // 10 секунд таймаут
-    });
 
+/**
+ * Добавляет пользователя через локальный webhook (эмуляция успешной оплаты)
+ * @param {number|string} amount - сумма
+ * @param {string|number} custom_fields - дополнительные поля
+ * @returns {Promise<any>} - ответ сервера
+ */
+export async function addUser(amount, custom_fields) {
+  try {
+    const response = await axios.post(
+      `http://localhost:3000/lava-webhook`,
+      {
+        amount,
+        status: "success",
+        custom_fields,
+      },
+      {
+        headers: { "Content-Type": "application/json" },
+        timeout: 10000,
+      }
+    );
     return response.data;
   } catch (error) {
     if (error.response) {
-      // Сервер ответил с ошибкой
-      console.error('Server responded with error:', {
+      console.error("Server responded with error:", {
         status: error.response.status,
-        data: error.response.data
+        data: error.response.data,
       });
       throw new Error(`Server error: ${error.response.status}`);
     } else if (error.request) {
-      // Запрос был сделан, но ответ не получен
-      console.error('No response received:', error.request);
-      throw new Error('No response from server');
+      console.error("No response received:", error.request);
+      throw new Error("No response from server");
     } else {
-      // Ошибка при настройке запроса
-      console.error('Request setup error:', error.message);
-      throw new Error('Failed to setup request');
+      console.error("Request setup error:", error.message);
+      throw new Error("Failed to setup request");
     }
   }
 }
+
 
 
 // Универсальная функция для получения интервала дат (месяц, неделя и т.д.)
@@ -67,9 +69,7 @@ function getInterval(getStart, getEnd, date = new Date()) {
   };
 }
 
-// Получить интервал текущего месяца
 const getMonthInterval = (date) => getInterval(startOfMonth, endOfMonth, date);
-// Получить интервал текущей недели
 const getWeekInterval = (date) => getInterval(startOfWeek, endOfWeek, date);
 
 /**
@@ -190,13 +190,17 @@ export function compareWithCurrentDate(date) {
 /**
  * Класс для формирования отчёта администратора
  */
-class Report {
+
+/**
+ * Класс для формирования отчёта администратора
+ */
+export class Report {
   constructor(
     allUserInbd,
     activeUsersInbd,
     notificateUser,
-    userInСhannel,
-    userThisMounth,
+    userInChannel,
+    userThisMonth,
     userThisWeek,
     balance,
     freeze_balance
@@ -204,13 +208,18 @@ class Report {
     this.allUserInbd = allUserInbd.length; // Всего пользователей в БД
     this.activeUsersInbd = activeUsersInbd.length; // Активных пользователей
     this.notificateUser = notificateUser.length; // Пользователей для уведомления
-    this.userInСhannel = userInСhannel - 2; // Пользователей в канале (минус бота и владельца)
-    this.userThisMounth = userThisMounth.length; // Новых за месяц
+    this.userInChannel = userInChannel - 2; // Пользователей в канале (минус бота и владельца)
+    this.userThisMonth = userThisMonth.length; // Новых за месяц
     this.userThisWeek = userThisWeek.length; // Новых за неделю
     this.balance = balance; // Баланс Lava
     this.freeze_balance = freeze_balance; // Замороженный баланс
   }
 }
+
+/**
+ * Формирует и возвращает отчёт для администратора
+ * @returns {Promise<Report>} - объект отчёта
+ */
 
 /**
  * Формирует и возвращает отчёт для администратора
@@ -225,8 +234,8 @@ export async function createReportAdmin() {
     allUserInbd,
     activeUsersInbd,
     notificateUser,
-    userInСhannel,
-    userThisMounth,
+    userInChannel,
+    userThisMonth,
     userThisWeek,
   ] = await Promise.all([
     database.dbFindAll(),
@@ -246,8 +255,8 @@ export async function createReportAdmin() {
     allUserInbd,
     activeUsersInbd,
     notificateUser,
-    userInСhannel,
-    userThisMounth,
+    userInChannel,
+    userThisMonth,
     userThisWeek,
     balance,
     freeze_balance
