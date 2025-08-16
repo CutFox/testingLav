@@ -18,40 +18,43 @@ const lavaApi = new LavaPayment(
   process.env.LAVA_SHOP_NAME
 );
 
-export async function addUser(amount , custom_fields) {
+export async function addUser(amount, custom_fields) {
   try {
-    const response = await axios.post(`http://localhost:3000/lava-webhook`, {
-      amount: amount,
-      status: "success",
-      custom_fields: custom_fields,
-    }, {
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await axios.post(
+      `http://localhost:3000/lava-webhook`,
+      {
+        amount: amount,
+        status: "success",
+        custom_fields: custom_fields,
       },
-      timeout: 10000 // 10 секунд таймаут
-    });
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        timeout: 10000, // 10 секунд таймаут
+      }
+    );
 
     return response.data;
   } catch (error) {
     if (error.response) {
       // Сервер ответил с ошибкой
-      console.error('Server responded with error:', {
+      console.error("Server responded with error:", {
         status: error.response.status,
-        data: error.response.data
+        data: error.response.data,
       });
       throw new Error(`Server error: ${error.response.status}`);
     } else if (error.request) {
       // Запрос был сделан, но ответ не получен
-      console.error('No response received:', error.request);
-      throw new Error('No response from server');
+      console.error("No response received:", error.request);
+      throw new Error("No response from server");
     } else {
       // Ошибка при настройке запроса
-      console.error('Request setup error:', error.message);
-      throw new Error('Failed to setup request');
+      console.error("Request setup error:", error.message);
+      throw new Error("Failed to setup request");
     }
   }
 }
-
 
 // Универсальная функция для получения интервала дат (месяц, неделя и т.д.)
 function getInterval(getStart, getEnd, date = new Date()) {
@@ -76,6 +79,7 @@ const getWeekInterval = (date) => getInterval(startOfWeek, endOfWeek, date);
  * Отправляет уведомление пользователям, у которых скоро закончится подписка
  */
 export async function createNotification() {
+  console.log("noti");
   const notifyUsers = await database.dbFindNotificationUsers();
   await Promise.all(
     notifyUsers.map(({ userId }) =>
@@ -90,6 +94,47 @@ export async function createNotification() {
   );
 }
 
+export async function cronUserUpdate() {
+  console.log("cron");
+  let users = await database.dbFindAll();
+  for (const item of users) {
+    const {
+      userId,
+      userNotification,
+      subscriptionEnd,
+      startNotificationMessage,
+      userActive,
+    } = item;
+    if (!userActive) continue; // Пропуск неактивных пользователей
+
+    // Если пользователь ещё не получил уведомление, но пора уведомить
+    if (!userNotification) {
+      if (compareWithCurrentDate(startNotificationMessage) <= 0) {
+        await database.dbSetNotification(userId, true);
+        console.log(userId, "start notification");
+      }
+    } else {
+      // Если подписка закончилась — отключаем пользователя
+      if (compareWithCurrentDate(subscriptionEnd) <= 0) {
+        try {
+          console.log(userId, "User disable");
+          await database.dbSetUserActive(userId, false);
+          await database.dbSetNotification(userId, false);
+          await removeUserFromChannel(process.env.TELEGRAM_CHANNEL_ID, userId);
+          await bot.sendMessage(
+            userId,
+            `Привет! Срок действия платной подписки истёк.` +
+              `Спасибо тебе огромное за то, что был со мной и поддерживал меня в течение этого времени! Я очень ценю, что ты выбрал мой платный Telegram-канал.` +
+              `Буду очень рад видеть тебя снова в числе моих подписчиков!\nУдачи! 💪`,
+            { parse_mode: "HTML" }
+          );
+        } catch (e) {
+          console.log(e);
+        }
+      }
+    }
+  }
+}
 /**
  * Отправляет кастомное уведомление администраторам
  * @param {string} textNotification - текст уведомления
